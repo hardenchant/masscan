@@ -63,6 +63,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #if defined(WIN32)
 #include <WinSock.h>
@@ -73,6 +74,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #endif
 
 /*
@@ -952,6 +954,40 @@ receive_thread(void *v)
             /*
              * This is where we do the output
              */
+
+            if (status == PortStatus_Open) {
+                struct sockaddr_in server;
+                int sock = socket(AF_INET , SOCK_STREAM , 0);
+                if (sock != -1) {
+                    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+                    server.sin_family = AF_INET;
+                    server.sin_port = htons(4222);
+                    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) >= 0) {
+                        char* ip_port = calloc (22, sizeof(char));
+                        snprintf(ip_port, 22, "%u.%u.%u.%u:%u", 
+                            (ip_them>>24)&0xFF, 
+                            (ip_them>>16)&0xFF, 
+                            (ip_them>> 8)&0xFF, 
+                            (ip_them>> 0)&0xFF, 
+                            port_them
+                        );
+                        char* msg = calloc (48, sizeof(char));
+                        snprintf(msg, 48, "%s%i%s%s%s",
+                            "pub masscan_output ",
+                            (int) strlen(ip_port),
+                            "\r\n",
+                            ip_port,
+                            "\r\n"
+                            );
+                        send(sock, msg, strlen(msg), 0);
+                        free(ip_port);
+                        free(msg);
+                    }
+                }
+                close(sock);
+            }
+
+
             output_report_status(
                         out,
                         global_now,
