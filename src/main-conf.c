@@ -339,6 +339,15 @@ masscan_echo(struct Masscan *masscan, FILE *fp)
             (unsigned char)(masscan->redis.ip>> 0),
             masscan->redis.port);
         break;
+    case Output_NATS:
+    fprintf(fp, "output-format = NATS\n");
+    fprintf(fp, "NATS = %u.%u.%u.%u:%u\n",
+        (unsigned char)(masscan->nats.ip>>24),
+        (unsigned char)(masscan->nats.ip>>16),
+        (unsigned char)(masscan->nats.ip>> 8),
+        (unsigned char)(masscan->nats.ip>> 0),
+        masscan->nats.port);
+    break;
 
     default:
         fprintf(fp, "output-format = unknown(%u)\n", masscan->output.format);
@@ -1496,6 +1505,8 @@ masscan_set_parameter(struct Masscan *masscan,
         else if (EQUALS("certs", value))        x = Output_Certs;
         else if (EQUALS("none", value))         x = Output_None;
         else if (EQUALS("redis", value))        x = Output_Redis;
+        else if (EQUALS("nats", value))         x = Output_NATS;
+        
         else {
             LOG(0, "FAIL: unknown output-format: %s\n", value);
             LOG(0, "  hint: 'binary', 'xml', 'grepable', ...\n");
@@ -1556,7 +1567,36 @@ masscan_set_parameter(struct Masscan *masscan,
         strcpy_s(masscan->output.filename, 
                  sizeof(masscan->output.filename), 
                  "<redis>");
-    } else if (EQUALS("release-memory", name)) {
+    }else if (EQUALS("nats", name)){ 
+        struct Range range;
+        unsigned offset = 0;
+        unsigned max_offset = (unsigned)strlen(value);
+        unsigned port = 4222;
+
+        range = range_parse_ipv4(value, &offset, max_offset);
+        if ((range.begin == 0 && range.end == 0) || range.begin != range.end) {
+            LOG(0, "FAIL:  bad nats IP address: %s\n", value);
+            exit(1);
+        }
+        if (offset < max_offset) {
+            while (offset < max_offset && isspace(value[offset]))
+                offset++;
+            if (offset+1 < max_offset && value[offset] == ':' && isdigit(value[offset+1]&0xFF)) {
+                port = strtoul(value+offset+1, 0, 0);
+                if (port > 65535 || port == 0) {
+                    LOG(0, "FAIL: bad nats port: %s\n", value+offset+1);
+                    exit(1);
+                }
+            }
+        }
+
+        masscan->nats.ip = range.begin;
+        masscan->nats.port = port;
+        masscan->output.format = Output_NATS;
+        strcpy_s(masscan->output.filename, 
+                 sizeof(masscan->output.filename), 
+                 "<nats>");
+    }else if (EQUALS("release-memory", name)) {
         fprintf(stderr, "nmap(%s): this is our default option\n", name);
     } else if (EQUALS("resume", name)) {
         masscan_read_config_file(masscan, value);

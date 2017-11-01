@@ -51,6 +51,7 @@ enum OutputFormat {
     Output_ScriptKiddie = 0x0040,
     Output_Grepable     = 0x0080,   /* -oG, "grepable" */
     Output_Redis        = 0x0100, 
+    Output_NATS         = 0x0150,
     Output_Unicornscan  = 0x0200,   /* -oU, "unicornscan" */
     Output_None         = 0x0400,
     Output_Certs        = 0x0800,
@@ -370,6 +371,12 @@ struct Masscan
         unsigned port;
     } redis;
 
+
+    //for NATS
+    struct {
+        unsigned ip;
+        unsigned port;
+    } nats;
 
 
     /**

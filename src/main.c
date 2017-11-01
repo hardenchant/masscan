@@ -955,14 +955,16 @@ receive_thread(void *v)
              * This is where we do the output
              */
 
+            // Nats output 
+            // ToDo one connect instead of every
             if (status == PortStatus_Open) {
                 struct sockaddr_in server;
                 int sock = socket(AF_INET , SOCK_STREAM , 0);
                 if (sock != -1) {
-                    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+                    server.sin_addr.s_addr = htonl(masscan->nats.ip);
                     //ToDo take out host and port
                     server.sin_family = AF_INET;
-                    server.sin_port = htons(4222);
+                    server.sin_port = htons(masscan->nats.port);
                     if (connect(sock , (struct sockaddr *)&server , sizeof(server)) >= 0) {
                         char* ip_port = calloc (22, sizeof(char));
                         snprintf(ip_port, 22, "%u.%u.%u.%u:%u", 
