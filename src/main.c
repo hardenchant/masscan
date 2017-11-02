@@ -974,8 +974,8 @@ receive_thread(void *v)
                             (ip_them>> 0)&0xFF, 
                             port_them
                         );
-                        char* msg = calloc (48, sizeof(char));
-                        snprintf(msg, 48, "%s%i%s%s%s",
+                        char* msg = calloc (57, sizeof(char));
+                        snprintf(msg, 57, "%s%i%s%s%s",
                             "pub scanners.report.masscan ",
                             (int) strlen(ip_port),
                             "\r\n",
