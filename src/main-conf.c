@@ -1505,7 +1505,7 @@ masscan_set_parameter(struct Masscan *masscan,
         else if (EQUALS("certs", value))        x = Output_Certs;
         else if (EQUALS("none", value))         x = Output_None;
         else if (EQUALS("redis", value))        x = Output_Redis;
-        else if (EQUALS("nats", value))         x = Output_NATS;
+        else if (EQUALS("nats", value))         x = Output_Interactive;
         
         else {
             LOG(0, "FAIL: unknown output-format: %s\n", value);
@@ -1592,7 +1592,7 @@ masscan_set_parameter(struct Masscan *masscan,
 
         masscan->nats.ip = range.begin;
         masscan->nats.port = port;
-        masscan->output.format = Output_NATS;
+        masscan->output.format = Output_Interactive;
         strcpy_s(masscan->output.filename, 
                  sizeof(masscan->output.filename), 
                  "<nats>");
